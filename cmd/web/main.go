@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"log"
 	"net/http"
 	"os"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/Slimo300/Bookings/internal/config"
 	"github.com/Slimo300/Bookings/internal/handlers"
+	"github.com/Slimo300/Bookings/internal/models"
 	"github.com/Slimo300/Bookings/internal/render"
 	"github.com/alexedwards/scs/v2"
 )
@@ -35,6 +37,8 @@ func main() {
 }
 
 func run() error {
+	gob.Register(models.Reservation{})
+
 	app.InProduction = false
 
 	infoLog = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
@@ -59,7 +63,7 @@ func run() error {
 	app.TemplateCache = tc
 	app.UseCache = false
 
-	repo := handlers.NewRepo()
+	repo := handlers.NewRepo(&app)
 	handlers.NewHandlers(repo)
 	render.NewRenderer(&app)
 

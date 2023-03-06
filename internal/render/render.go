@@ -9,6 +9,7 @@ import (
 
 	"github.com/Slimo300/Bookings/internal/config"
 	"github.com/Slimo300/Bookings/internal/models"
+	"github.com/justinas/nosurf"
 )
 
 var app *config.AppConfig
@@ -21,7 +22,11 @@ func NewRenderer(a *config.AppConfig) {
 
 // AddDefaultData is helper for passing data that will be necessary to
 // every template
-func AddDefaultData(td *models.TemplateData) *models.TemplateData {
+func AddDefaultData(td *models.TemplateData, r *http.Request) *models.TemplateData {
+	td.CSRFToken = nosurf.Token(r)
+	td.Flash = app.Session.PopString(r.Context(), "flash")
+	td.Warning = app.Session.PopString(r.Context(), "warning")
+	td.Error = app.Session.PopString(r.Context(), "error")
 	return td
 }
 
@@ -40,7 +45,7 @@ func Template(w http.ResponseWriter, r *http.Request, tmpl string, td *models.Te
 		return errors.New("Could not get template from cache")
 	}
 
-	td = AddDefaultData(td)
+	td = AddDefaultData(td, r)
 
 	if err := t.Execute(w, td); err != nil {
 		return err
